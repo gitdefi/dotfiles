@@ -23,9 +23,10 @@ qnode_output=$(cd /root/ceremonyclient/node && qnode -node-info)
 # current_max_frame=$(echo "$output" | grep -oP 'Max Frame: \K\d+')
 max_frame=$(echo "$qnode_output" | grep -P 'Max Frame:')
 
-# echo "\n\n==> Quil Node Info \n$current_time: \n$output" >> "$output_dir/quil_node-info.log"
+# echo -e "\n\n==> Quil Node Info \n$current_time: \n$output" >> "$output_dir/quil_node-info.log"
 
-# echo "\n\n==> $current_time \nQuil Node Info: \n$output" >> "$output_dir/quil_node-info.log"
+# echo -e "\n\n==> $current_time \nQuil Node Info: \n$output" >> "$output_dir/quil_node-info.log"
 
-echo "\n\n$current_time \n$max_frame <== " >> "$output_dir/quil_node-info.log"
+# -e 是 echo 命令的一个选项参数,它的作用是允许 echo 能够解释和显示转义字符。 
+echo -e "\n\n$current_time \n$max_frame <== " >> "$output_dir/quil_node-info.log"
 
