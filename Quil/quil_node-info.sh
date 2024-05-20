@@ -18,7 +18,10 @@
 current_time=$(date +"%Y-%m-%d %H:%M:%S")
 # output_dir="$(mktemp -d)"
 output_dir="/root"
-qnode_output=$(cd /root/ceremonyclient/node && qnode -node-info)
+
+# 1. **环境变量问题**：`cron` 执行时的环境变量与手动执行时的环境变量不同。`cron` 默认的环境变量非常有限，因此可能缺少某些必要的环境配置。 
+# 使用绝对路径执行命令 
+qnode_output=$(cd /root/ceremonyclient/node && /root/go/bin/qnode -node-info)
 
 # current_max_frame=$(echo "$output" | grep -oP 'Max Frame: \K\d+')
 max_frame=$(echo "$qnode_output" | grep -P 'Max Frame:')
