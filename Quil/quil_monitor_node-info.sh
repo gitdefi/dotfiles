@@ -1,9 +1,11 @@
 #!/bin/bash
 
 
-# 300 1800
+# 300 1800 s
 
-# 900 4500
+# 900 4500 s
+
+# 900 9000 s
 
 
 # apt update && apt-get update
@@ -31,7 +33,7 @@ while true; do
        timer=0
    else
        timer=$((timer+900))
-       if [ "$timer" -ge 4500 ]; then
+       if [ "$timer" -ge 9000 ]; then
            systemctl stop ceremonyclient.service
            sleep 30
            # # > sudo ifdown eth0 && sudo ifup eth0
