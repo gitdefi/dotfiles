@@ -69,7 +69,7 @@ cat > /etc/systemd/system/ceremonyclient.service <<EOF
 [Unit]
 Description=Ceremony Client Go App Service
 [Service]
-Slice=/etc/systemd/system/ceremonyclient.slice
+Slice=ceremonyclient.slice
 Type=simple
 Restart=always
 RestartSec=5s
