@@ -20,7 +20,7 @@ restart_times=1
 
 while true; do
    current_time=$(date +"%Y-%m-%d %H:%M:%S")
-   qnode_output=$(cd /root/ceremonyclient/node && /root/go/bin/qnode -node-info)
+   qnode_output=$(cd /root/ceremonyclient/node && /root/ceremonyclient/node/node-1.4.18-linux-amd64 -node-info)
    current_max_frame=$(echo "$qnode_output" | grep -oP 'Max Frame: \K\d+')
    log_max_frame=$(echo "$qnode_output" | grep -P 'Max Frame:')
 
