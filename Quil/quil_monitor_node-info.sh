@@ -14,8 +14,8 @@
 
 # # > output_dir="$(mktemp -d)"
 output_dir="/root"
-first_current_frame=1
-last_current_frame=1
+first_current_frame=0
+last_current_frame=0
 timer=0
 restart_times=1
 
@@ -38,7 +38,9 @@ while true; do
    fi
 
    # 比较第一行和最后一行的数值大小 
-   # 如果 $last_current_frame 变量的值大于 $first_current_frame 变量的值,则执行 then 后面的代码块。
+   # -gt (greater than，大于) ; -ge (greater than or equal to，大于或等于) 
+   # 如果 $last_current_frame 变量的值大于 $first_current_frame 变量的值,则执行 then 后面的代码块。 
+   # 如果 $last_current_frame 和 $first_current_frame 都是 0,那么条件判断语句的 then 部分将不会被执行,脚本将继续执行 else 部分的代码块。 
    if [ "$last_current_frame" -gt "$first_current_frame" ]; then
        # # last_current_frame="$first_current_frame"
        timer=0
