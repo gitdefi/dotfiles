@@ -14,7 +14,8 @@
 
 # # > output_dir="$(mktemp -d)"
 output_dir="/root"
-last_current_frame=0
+first_current_frame=1
+last_current_frame=1
 timer=0
 restart_times=1
 
@@ -70,7 +71,7 @@ while true; do
            fi
            current_time=$(date +"%Y-%m-%d %H:%M:%S")
            echo -e "\n\n在 $current_time 时 节点区块高度为: $first_current_frame , 已等待150分钟 , 节点区块高度仍未变化 系统将于30秒后重启 , 至此 节点累计重启 $restart_times 次 <== " >> "$output_dir/quil_monitor_node-info.log"
-           restart_times=$((restart_times+1))
+           # # > restart_times=$((restart_times+1))
            timer=0
            sleep 30
            /sbin/reboot
