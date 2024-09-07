@@ -39,6 +39,7 @@ install_snell() {
     apt-get install -y unzip wget curl
 
     SNELL_VERSION="v4.0.1"
+    SNELL_VERSION="v4.1.0"
     ARCH=$(arch)
     SNELL_URL=""
     INSTALL_DIR="/usr/local/bin"
@@ -188,8 +189,12 @@ Wants=network-online.target
 
 [Service]
 Type=simple
+User=root
+Restart=on-failure
+RestartSec=5s
 Environment=MONOIO_FORCE_LEGACY_DRIVER=1
-ExecStart=/usr/bin/shadow-tls-x86_64-unknown-linux-musl --v3 server --server 0.0.0.0:$SNELL_PORT --password $RANDOM_PASSWORD --listen ::0:$SHADOW_TLS_PORT --tls $tls_option
+# ExecStart=/usr/bin/shadow-tls-x86_64-unknown-linux-musl --v3 server --server 0.0.0.0:$SNELL_PORT --password $RANDOM_PASSWORD --listen ::0:$SHADOW_TLS_PORT --tls $tls_option
+ExecStart=/usr/bin/shadow-tls-x86_64-unknown-linux-musl --v3  --fastopen server --server 127.0.0.1:$SNELL_PORT --password $RANDOM_PASSWORD --listen 0.0.0.0:$SHADOW_TLS_PORT --tls $tls_option
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=shadow-tls
