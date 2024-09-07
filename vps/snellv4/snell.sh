@@ -194,7 +194,6 @@ User=root
 Restart=on-failure
 RestartSec=5s
 Environment=MONOIO_FORCE_LEGACY_DRIVER=1
-# ExecStart=/usr/bin/shadow-tls-x86_64-unknown-linux-musl --v3 server --server 0.0.0.0:$SNELL_PORT --password $RANDOM_PASSWORD --listen ::0:$SHADOW_TLS_PORT --tls $tls_option
 ExecStart=/usr/bin/shadow-tls-x86_64-unknown-linux-musl --v3  --fastopen server --server 127.0.0.1:$SNELL_PORT --password $RANDOM_PASSWORD --listen 0.0.0.0:$SHADOW_TLS_PORT --tls $tls_option
 StandardOutput=syslog
 StandardError=syslog
@@ -203,7 +202,8 @@ SyslogIdentifier=shadow-tls
 [Install]
 WantedBy=multi-user.target
 EOF
-
+    # 原配置: 
+    # ExecStart=/usr/bin/shadow-tls-x86_64-unknown-linux-musl --v3 server --server 0.0.0.0:$SNELL_PORT --password $RANDOM_PASSWORD --listen ::0:$SHADOW_TLS_PORT --tls $tls_option
     systemctl daemon-reload
     systemctl enable shadow-tls.service
     systemctl start shadow-tls.service
@@ -265,7 +265,8 @@ generate_config() {
     if systemctl list-units --type=service | grep -q "shadow-tls.service"; then
         SHADOW_TLS_CONF="/etc/systemd/system/shadow-tls.service"
         if [ -f "$SHADOW_TLS_CONF" ]; then
-            SHADOW_TLS_PORT=$(grep 'ExecStart=' $SHADOW_TLS_CONF | sed -n 's/.*--listen ::0:\([0-9]*\).*/\1/p')
+            # SHADOW_TLS_PORT=$(grep 'ExecStart=' $SHADOW_TLS_CONF | sed -n 's/.*--listen ::0:\([0-9]*\).*/\1/p')
+            SHADOW_TLS_PORT=$(grep 'ExecStart=' $SHADOW_TLS_CONF | sed -n 's/.*--listen 0.0.0.0:\([0-9]*\).*/\1/p')
             SHADOW_TLS_PASSWORD=$(grep 'ExecStart=' $SHADOW_TLS_CONF | sed -n 's/.*--password \([^ ]*\).*/\1/p')
             SHADOW_TLS_SNI=$(grep 'ExecStart=' $SHADOW_TLS_CONF | sed -n 's/.*--tls \([^ ]*\).*/\1/p')
             PSK=$(awk -F ' = ' '/psk/ {print $2}' /etc/snell/snell-server.conf)
