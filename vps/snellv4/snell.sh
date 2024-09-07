@@ -83,11 +83,17 @@ EOF
 [Unit]
 Description=Snell Proxy Service
 After=network.target
+# After=network-online.target
+# Wants=network-online.target systemd-networkd-wait-online.service
 
 [Service]
 Type=simple
-User=nobody
-Group=nogroup
+# User=nobody
+# Group=nogroup
+User=root
+Restart=on-failure
+RestartSec=5s
+ExecStartPre=/bin/sh -c 'ulimit -n 51200'
 LimitNOFILE=32768
 ExecStart=/usr/local/bin/snell-server -c $CONF_FILE
 AmbientCapabilities=CAP_NET_BIND_SERVICE
