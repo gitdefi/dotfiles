@@ -75,11 +75,13 @@ install_snell() {
 
     cat > $CONF_FILE << EOF
 [snell-server]
-# listen = ::0:$RANDOM_PORT
 listen = 0.0.0.0:$RANDOM_PORT
 psk = $RANDOM_PSK
 ipv6 = true
 EOF
+
+# 原配置: 
+# listen = ::0:$RANDOM_PORT
 
     cat > $SYSTEMD_SERVICE_FILE << EOF
 [Unit]
