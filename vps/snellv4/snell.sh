@@ -39,7 +39,7 @@ install_snell() {
     apt-get install -y unzip wget curl
 
     # SNELL_VERSION="v4.0.1"
-    SNELL_VERSION="v4.1.0"
+    SNELL_VERSION="v4.1.1"
     ARCH=$(arch)
     SNELL_URL=""
     INSTALL_DIR="/usr/local/bin"
@@ -151,7 +151,8 @@ show_snell_config() {
 
 install_shadow_tls() {
     cd /usr/bin
-    wget https://github.com/ihciah/shadow-tls/releases/download/v0.2.25/shadow-tls-x86_64-unknown-linux-musl
+    # wget https://github.com/ihciah/shadow-tls/releases/download/v0.2.25/shadow-tls-x86_64-unknown-linux-musl
+    wget https://github.com/ihciah/shadow-tls/releases/latest/download/shadow-tls-$(uname -m)-unknown-$(uname -s)-musl -O shadow-tls-x86_64-unknown-linux-musl
     if [ $? -ne 0 ]; then
         echo "下载 Shadow-TLS 失败."
         exit 1
