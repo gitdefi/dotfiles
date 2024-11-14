@@ -266,8 +266,9 @@ zinit ice wait="1" lucid snippet for \
     OMZ::plugins/jsontools/jsontools.plugin.zsh
 
 
-# Load pure theme
-zinit ice pick"async.zsh" src"pure.zsh"
+# # > Load pure theme
+# zinit ice pick"async.zsh" src"pure.zsh"
+zinit ice compile'(pure|async).zsh' pick'async.zsh' src'pure.zsh'
 zinit light sindresorhus/pure
 
 # OMZ Themes
