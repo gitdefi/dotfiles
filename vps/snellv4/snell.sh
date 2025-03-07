@@ -97,8 +97,9 @@ Type=simple
 User=root
 Restart=on-failure
 RestartSec=5s
-ExecStartPre=/bin/sh -c 'ulimit -n 51200'
-LimitNOFILE=32768
+# ExecStartPre=/bin/sh -c 'ulimit -n 51200'
+# LimitNOFILE=32768
+LimitNOFILE=51200
 ExecStart=/usr/local/bin/snell-server -c $CONF_FILE
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 StandardOutput=syslog
@@ -196,6 +197,11 @@ Type=simple
 User=root
 Restart=on-failure
 RestartSec=5s
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+# LimitNOFILE=32768
+LimitNOFILE=51200
+LimitMEMLOCK=infinity
+Environment=RUST_LOG=error
 Environment=MONOIO_FORCE_LEGACY_DRIVER=1
 ExecStart=/usr/bin/shadow-tls-x86_64-unknown-linux-musl --v3  --fastopen server --server 127.0.0.1:$SNELL_PORT --password $RANDOM_PASSWORD --listen 0.0.0.0:$SHADOW_TLS_PORT --tls $tls_option
 StandardOutput=syslog
