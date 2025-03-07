@@ -17,5 +17,6 @@
 请以 root 权限运行此脚本：
 
 ```bash
-bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/snellv4/main/snell.sh -o snell.sh)
+bash <(wget -qO- https://raw.githubusercontent.com/gitdefi/dotfiles/refs/heads/main/vps/snellv4/snell.sh -o snell.sh)
+# bash <(wget -qO- https://raw.githubusercontent.com/ridaiqianhe/snellv4/main/snell.sh -o snell.sh)
 ```
