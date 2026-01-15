@@ -82,7 +82,7 @@ zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
 
 
 # cd 时在右侧预览目录内容
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 
 zstyle ':completion:*:descriptions' format '[%d]'
 
@@ -161,14 +161,14 @@ zstyle ':fzf-tab:complete:_zlua:*' query-string input
 # zstyle ':fzf-tab:complete:kill:argument-rest' fzf-preview 'ps --pid=$word -o cmd --no-headers -w -w'
 # zstyle ':fzf-tab:complete:kill:argument-rest' fzf-flags '--preview-window=down:3:wrap'
 zstyle ':fzf-tab:complete:kill:*' popup-pad 0 3
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:complete:cd:*' popup-pad 30 0
 zstyle ":fzf-tab:*" fzf-flags --color=bg+:23
 zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
 zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ":completion:*:git-checkout:*" sort false
 zstyle ':completion:*' file-sort modification
-zstyle ':completion:*:exa' sort false
+zstyle ':completion:*:eza' sort false
 zstyle ':completion:files' sort false
 
 # 一些样板代码（未来可能会改变）
@@ -179,7 +179,7 @@ in=\${\${\"\$(<{f})\"%\$'\0'*}#*\$'\0'}
 local -A ctxt=(\"\${(@ps:\2:)CTXT}\")
 "
 
-zstyle ':fzf-tab:complete:cd:*' extra-opts --preview=$extract'exa -1 --color=always ${~ctxt[hpre]}$in'
+zstyle ':fzf-tab:complete:cd:*' extra-opts --preview=$extract'eza -1 --color=always ${~ctxt[hpre]}$in'
 
 zstyle ':fzf-tab:complete:kill:argument-rest' extra-opts --preview=$extract'ps --pid=$in[(w)1] -o cmd --no-headers -w -w' --preview-window=down:3:wrap
 
