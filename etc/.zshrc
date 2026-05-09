@@ -268,6 +268,7 @@ zinit ice wait="1" lucid snippet for \
 
 # # > Load pure theme
 # zinit ice pick"async.zsh" src"pure.zsh"
+zstyle :prompt:pure:git:stash show yes
 zinit ice compile'(pure|async).zsh' pick'async.zsh' src'pure.zsh'
 zinit light sindresorhus/pure
 
@@ -317,6 +318,330 @@ alias mv='mv -i'
 
 
 # source /root/myenv/bin/activate
+
+
+# GOROOT=/usr/local/go
+# GOPATH=$HOME/go
+# PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+
+
+# # > zsh command-not-found
+[ -r /etc/zsh_command_not_found ] && source /etc/zsh_command_not_found
+
+
+# > 半自动小函数：输入命令名，它帮你查包、显示简介，但不自动安装。
+
+# Debian / Ubuntu command-not-found support
+[ -r /etc/zsh_command_not_found ] && source /etc/zsh_command_not_found
+
+# 保存系统原始 command_not_found_handler
+if (( $+functions[command_not_found_handler] )); then
+  functions[_debian_command_not_found_handler]=$functions[command_not_found_handler]
+fi
+
+# 用 apt-file 查找命令所属软件包
+_cmd_apt_file_lookup() {
+  local cmd="$1"
+
+  if ! command -v apt-file >/dev/null 2>&1; then
+    echo
+    echo "apt-file 未安装，无法进一步搜索。"
+    echo "安装命令:"
+    echo "  apt install -y apt-file"
+    echo "  apt-file update"
+    return 127
+  fi
+
+  local results
+  results="$(
+    apt-file search "/$cmd" 2>/dev/null \
+      | awk -F': ' -v c="/$cmd" '
+          $2 ~ c "$" {
+            print
+          }
+        ' \
+      | sort -u \
+      | head -50
+  )"
+
+  if [ -z "$results" ]; then
+    echo
+    echo "command-not-found 和 apt-file 都没有找到命令：$cmd"
+    echo
+    echo "可以尝试更新 apt-file 数据库："
+    echo "  apt-file update"
+    return 127
+  fi
+
+  echo
+  echo "下面是 apt-file 搜索结果："
+  echo
+
+  local pkgs
+  pkgs="$(echo "$results" | cut -d: -f1 | sort -u | head -10)"
+
+  local pkg desc paths
+
+  echo "$pkgs" | while read -r pkg; do
+    [ -z "$pkg" ] && continue
+
+    desc="$(
+      apt-cache show "$pkg" 2>/dev/null \
+        | awk -F': ' '
+            /^Description-en: / { print $2; exit }
+            /^Description: / { print $2; exit }
+          '
+    )"
+
+    [ -z "$desc" ] && desc="暂无简介，可用 apt show $pkg 查看。"
+
+    echo "软件包: $pkg"
+    echo "用途: $desc"
+    echo "包含路径:"
+
+    echo "$results" \
+      | awk -F': ' -v p="$pkg" '$1 == p { print "  " $2 }' \
+      | head -8
+
+    echo "安装命令:"
+    echo "  apt install -y $pkg"
+    echo
+  done
+
+  return 127
+}
+
+# 自动增强版 command-not-found
+command_not_found_handler() {
+  local cmd="$1"
+  local output=""
+
+  if (( $+functions[_debian_command_not_found_handler] )); then
+    output="$(_debian_command_not_found_handler "$@" 2>&1)"
+    [ -n "$output" ] && echo "$output"
+
+    # 如果系统 command-not-found 已经给出安装建议，就不再 apt-file 搜索
+    if echo "$output" | grep -Eq "can be installed with:|^apt install |^apt-get install "; then
+      return 127
+    fi
+  fi
+
+  _cmd_apt_file_lookup "$cmd"
+  return 127
+}
+
+# 手动查询命令：findcmd rustc
+findcmd() {
+  if [ -z "$1" ]; then
+    echo "用法: findcmd 命令名"
+    return 1
+  fi
+
+  _cmd_apt_file_lookup "$1"
+}
+
+
+
+# 右侧显示本机时间和日期：19:16:18 2026-05-09
+# 右侧显示本机时间和日期，橙色
+
+
+# ------------------------------------------------------------
+# Pure right time patch
+#
+# 功能：
+# - 保留 Pure 原有全部功能：
+#   Git 分支 / dirty 状态 / 执行耗时 / virtualenv / ❯ 成功失败颜色等
+# - 第一行够宽：时间显示在第一行右侧
+# - 第一行不够宽：时间自动显示到 ❯ 所在行右侧，也就是 RPROMPT
+# - 第一行重新够宽：时间自动回到第一行右侧
+# - 两行都不够宽：隐藏时间，避免覆盖 Pure 原有信息
+# - 每次新 prompt 随机换色，并避免连续两次同色
+# ------------------------------------------------------------
+
+autoload -Uz add-zsh-hook
+setopt prompt_subst
+
+# 清理旧版尝试的 hook
+add-zsh-hook -d precmd _set_random_time_rprompt 2>/dev/null
+add-zsh-hook -d precmd _set_multiline_prompt_with_time 2>/dev/null
+add-zsh-hook -d precmd _pure_right_time_update 2>/dev/null
+add-zsh-hook -d precmd _pure_right_time_inject_once 2>/dev/null
+add-zsh-hook -d precmd _pure_right_time_install 2>/dev/null
+
+# 清理旧版函数
+unset -f _set_random_time_rprompt _set_multiline_prompt_with_time 2>/dev/null
+unset -f _pure_right_time_segment _pure_right_time_inject_once _pure_right_time_install 2>/dev/null
+unset -f _pure_right_time_update _pure_right_time_pick_color 2>/dev/null
+
+# 初始清空右提示符；后面只在第一行放不下时动态启用 RPROMPT
+RPROMPT=''
+RPS1=''
+
+# 柔和 256 色，避开黑、白、灰
+typeset -ga _pure_time_colors
+_pure_time_colors=(
+  39 45 51 75 81 87
+  111 117 123 147 153 159
+  114 120 121 150 156 157
+  141 177 183 189 213
+  168 169 204 205 210 211
+  208 209 214 215 220 222
+)
+
+typeset -g prompt_pure_right_time_first=''
+typeset -g prompt_pure_right_time_color=''
+typeset -g _pure_time_last_color=''
+
+_pure_right_time_pick_color() {
+  emulate -L zsh
+
+  local n=${#_pure_time_colors[@]}
+  (( n == 0 )) && return 1
+
+  local color=''
+  local tries=0
+
+  while (( tries < 16 )); do
+    color=${_pure_time_colors[$(( RANDOM % n + 1 ))]}
+    [[ "$color" != "$_pure_time_last_color" ]] && break
+    (( tries++ ))
+  done
+
+  _pure_time_last_color="$color"
+  prompt_pure_right_time_color="$color"
+}
+
+_pure_right_time_update() {
+  emulate -L zsh
+
+  prompt_pure_right_time_first=''
+  RPROMPT=''
+  RPS1=''
+
+  local width=${COLUMNS:-80}
+  (( width < 30 )) && return
+
+  local time_text=''
+
+  if zmodload zsh/datetime 2>/dev/null && (( $+EPOCHSECONDS )); then
+    strftime -s time_text '%H:%M:%S %Y-%m-%d' "$EPOCHSECONDS"
+  else
+    time_text="$(date '+%H:%M:%S %Y-%m-%d')"
+  fi
+
+  local time_len=${#time_text}
+  local gap=2
+
+  # 估算 Pure 第一行已有可见长度：
+  # jobs / user@host / path / git branch / dirty / action / arrows / stash / exec time
+  local line1_text=''
+
+  [[ -n ${psvar[12]} ]] && line1_text+="${psvar[12]} "
+  [[ -n ${psvar[13]} ]] && line1_text+="${(%):-%n@%m} "
+
+  line1_text+="${(%):-%~}"
+
+  [[ -n ${psvar[14]} ]] && line1_text+=" ${psvar[14]}${psvar[15]}"
+  [[ -n ${psvar[16]} ]] && line1_text+=" ${psvar[16]}"
+  [[ -n ${psvar[17]} ]] && line1_text+=" ${psvar[17]}"
+  [[ -n ${psvar[18]} ]] && line1_text+=" ${PURE_GIT_STASH_SYMBOL:-≡}"
+  [[ -n ${psvar[19]} ]] && line1_text+=" ${psvar[19]}"
+
+  local line1_len=${#line1_text}
+
+  # 估算 Pure 第二行已有可见长度：
+  # virtualenv / conda / nix-shell + prompt symbol
+  local prompt_symbol="${prompt_pure_state[prompt]:-${PURE_PROMPT_SYMBOL:-❯}}"
+  local line2_text=''
+
+  [[ -n ${psvar[20]} ]] && line2_text+="${psvar[20]} "
+  line2_text+="${prompt_symbol} "
+
+  local line2_len=${#line2_text}
+
+  _pure_right_time_pick_color
+
+  local color="$prompt_pure_right_time_color"
+  [[ -z "$color" ]] && return
+
+  local esc=$'\e'
+
+  # 第一行够宽：把时间画到第一行右侧
+  if (( line1_len + gap + time_len <= width )); then
+    local col=$(( width - time_len + 1 ))
+    (( col < 1 )) && return
+
+    prompt_pure_right_time_first="%{${esc}7${esc}[${col}G${esc}[38;5;${color}m${time_text}${esc}[0m${esc}8%}"
+    RPROMPT=''
+    RPS1=''
+    return
+  fi
+
+  # 第一行不够宽，但第二行够宽：
+  # 使用 RPROMPT，让 zsh 自己把时间放到 ❯ 所在行右侧
+  if (( line2_len + gap + time_len <= width )); then
+    prompt_pure_right_time_first=''
+    RPROMPT="%{${esc}[38;5;${color}m%}${time_text}%{${esc}[0m%}"
+    RPS1="$RPROMPT"
+    return
+  fi
+
+  # 两行都不够宽：隐藏时间，避免覆盖 Pure 原有信息
+  prompt_pure_right_time_first=''
+  RPROMPT=''
+  RPS1=''
+}
+
+_pure_right_time_install() {
+  emulate -L zsh
+  setopt prompt_subst
+
+  # 清理旧版变量注入残留
+  PROMPT=${PROMPT//\$\{prompt_pure_right_time_segment\}/}
+  PROMPT=${PROMPT//\$\{prompt_pure_right_time_first\}/}
+  PROMPT=${PROMPT//\$\{prompt_pure_right_time_second\}/}
+
+  # 清理旧版命令替换注入残留
+  PROMPT=${PROMPT//\$(_pure_right_time_segment first)/}
+  PROMPT=${PROMPT//\$(_pure_right_time_segment second)/}
+
+  local marker='${prompt_pure_right_time_first}${prompt_newline}'
+
+  [[ "$PROMPT" == *"$marker"* ]] && return
+
+  local needle='${prompt_newline}'
+  local replacement='${prompt_pure_right_time_first}${prompt_newline}'
+
+  if [[ "$PROMPT" == *"$needle"* ]]; then
+    PROMPT=${PROMPT/$needle/$replacement}
+  fi
+}
+
+_pure_right_time_update
+_pure_right_time_install
+
+add-zsh-hook precmd _pure_right_time_update
+
+
+# ------------------------------------------------------------
+# Optional hardening:
+# Pure async Git redraw 时，也重新计算时间位置。
+# 作用：
+# - Git dirty / arrows / stash 异步刷新后，时间位置也跟着重算
+# - 避免异步刷新导致第一行长度变化后，时间位置仍按旧长度判断
+# ------------------------------------------------------------
+
+if (( $+functions[prompt_pure_reset_prompt] )) && (( ! $+functions[_pure_right_time_original_reset_prompt] )); then
+  functions[_pure_right_time_original_reset_prompt]=$functions[prompt_pure_reset_prompt]
+
+  prompt_pure_reset_prompt() {
+    _pure_right_time_update 2>/dev/null
+    _pure_right_time_original_reset_prompt "$@"
+  }
+fi
+
+
 
 
 
