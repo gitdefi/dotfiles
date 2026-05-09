@@ -266,11 +266,31 @@ zinit ice wait="1" lucid snippet for \
     OMZ::plugins/jsontools/jsontools.plugin.zsh
 
 
+# 注意：
+# 本补丁依赖较新的 sindresorhus/pure。
+# 要求 Pure 的 PROMPT 中保留 ${prompt_newline} 作为第一行/第二行分隔点。
+#
+# 如果时间不显示，不要改 zsh 版本，优先更新 Pure：
+#   zinit update sindresorhus/pure
+#
+# 不建议使用兼容旧 Pure 的 fallback install 逻辑；
+# 实测增强版 _pure_right_time_install() 在新旧 Pure 上都可能导致时间不显示。
+# chore(zsh): 放弃兼容旧版 Pure 的时间注入逻辑
+# >
+# Pure prompt
+# Fixed version: v1.27.1 / dbefd0d
+# Reason: older Pure versions may not expose the ${prompt_newline} structure needed by the adaptive clock patch.
+# # > zinit update sindresorhus/pure
+
 # # > Load pure theme
 # zinit ice pick"async.zsh" src"pure.zsh"
+# >zinit ice compile'(pure|async).zsh' pick'async.zsh' src'pure.zsh'
 zstyle :prompt:pure:git:stash show yes
-zinit ice compile'(pure|async).zsh' pick'async.zsh' src'pure.zsh'
+
+# zinit ice ver"v1.27.1" compile'(pure|async).zsh' pick"async.zsh" src"pure.zsh"
+zinit ice ver"dbefd0d" compile'(pure|async).zsh' pick"async.zsh" src"pure.zsh"
 zinit light sindresorhus/pure
+
 
 # OMZ Themes
 # zinit snippet OMZT::jonathan.zsh-theme
