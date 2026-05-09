@@ -287,6 +287,12 @@ zinit ice wait="1" lucid snippet for \
 # >zinit ice compile'(pure|async).zsh' pick'async.zsh' src'pure.zsh'
 zstyle :prompt:pure:git:stash show yes
 
+# Pure prompt
+# 固定到已测试通过的 commit。
+# 注意：zinit 的 ver 主要在首次安装/删除重装时 checkout 指定版本；
+# 已安装插件不会因为改了 ver 自动切换，需要：
+# # > zinit delete sindresorhus/pure -y
+# # > exec zsh
 # zinit ice ver"v1.27.1" compile'(pure|async).zsh' pick"async.zsh" src"pure.zsh"
 zinit ice ver"dbefd0d" compile'(pure|async).zsh' pick"async.zsh" src"pure.zsh"
 zinit light sindresorhus/pure
